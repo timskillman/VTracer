@@ -1,6 +1,6 @@
 # VTracerCPP
 
-A C++20 port of VTracer for converting raster images into SVG files. The repository includes a native library, a command-line application, and a Windows .NET MAUI frontend.
+A C++20 port of VTracer for converting raster images into SVG files. The repository includes a native library, a command-line application, and a Windows .NET 10.0 MAUI frontend.  The MAUI project is configured for Windows and Mac.
 
 ![alt text](https://github.com/timskillman/VTracer/blob/master/VTracerMaui/Assets/Screenshot.jpg "Maui App")
 
