@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:VTracerMaui.Models"
+             x:Class="VTracerMaui.MainPage"
+             BackgroundColor="{StaticResource ShellBackground}">
+    <ContentPage.Resources>
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="TextColor" Value="{StaticResource White}" />
+            <Setter Property="BorderColor" Value="{StaticResource White}" />
+            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Padding" Value="22,12" />
+            <Setter Property="FontFamily" Value="OpenSansRegular" />
+        </Style>
+
+        <Style x:Key="ToggleButtonStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="TextColor" Value="{StaticResource White}" />
+            <Setter Property="BorderColor" Value="{StaticResource White}" />
+            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Padding" Value="18,10" />
+            <Setter Property="FontFamily" Value="OpenSansRegular" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource White}" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="HorizontalTextAlignment" Value="End" />
+            <Setter Property="FontSize" Value="20" />
+        </Style>
+
+        <Style x:Key="ControlLabelStyle" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource White}" />
+            <Setter Property="HorizontalTextAlignment" Value="End" />
+            <Setter Property="LineBreakMode" Value="WordWrap" />
+        </Style>
+
+        <Style x:Key="ValueLabelStyle" TargetType="Label">
+            <Setter Property="TextColor" Value="{StaticResource White}" />
+            <Setter Property="FontSize" Value="26" />
+            <Setter Property="HorizontalTextAlignment" Value="Center" />
+            <Setter Property="VerticalTextAlignment" Value="Center" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid Padding="40,32,40,24" RowDefinitions="Auto,Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="24">
+            <HorizontalStackLayout Spacing="18" VerticalOptions="Center">
+                <Image Source="visioncortex_logo.svg" HeightRequest="42" Aspect="AspectFit" />
+                <Label Text="VTracer"
+                       TextColor="{StaticResource White}"
+                       FontFamily="OpenSansSemibold"
+                       FontSize="26"
+                       VerticalTextAlignment="Center" />
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout Grid.Column="1" Spacing="12" HorizontalOptions="End">
+                <Button x:Name="ArticleButton"
+                        Style="{StaticResource NavButtonStyle}"
+                        Text="ARTICLE"
+                        Clicked="OnArticleClicked" />
+                <Button x:Name="GitHubButton"
+                        Style="{StaticResource NavButtonStyle}"
+                        Text="GITHUB"
+                        Clicked="OnGitHubClicked" />
+                <Button x:Name="OpenImageButton"
+                        Style="{StaticResource NavButtonStyle}"
+                        Text="SELECT FILE"
+                        Clicked="OnOpenImageClicked" />
+                <Button x:Name="DownloadButton"
+                        Style="{StaticResource NavButtonStyle}"
+                        Text="DOWNLOAD AS SVG"
+                        Clicked="OnDownloadClicked"
+                        IsEnabled="False"
+                        BackgroundColor="{StaticResource BrandBlue}"
+                        BorderColor="{StaticResource BrandGold}" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,28,0,16" RowDefinitions="Auto,Auto">
+            <BoxView HeightRequest="1" Color="{StaticResource PanelBorder}" HorizontalOptions="Fill" />
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+                <ProgressBar x:Name="TracingProgressBar"
+                             Progress="0"
+                             IsVisible="False"
+                             HeightRequest="6"
+                             ProgressColor="{StaticResource BrandGold}" />
+                <Label x:Name="StatusLabel"
+                       Grid.Column="1"
+                       Text="Select a file or choose a sample below."
+                       TextColor="#C8C8C8"
+                       FontSize="12"
+                       HorizontalTextAlignment="End" />
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnDefinitions="3.15*,1*" ColumnSpacing="32">
+            <Grid RowDefinitions="*,Auto">
+                <Border Grid.Row="0"
+                        Stroke="{StaticResource PanelBorder}"
+                        BackgroundColor="#1D1D1D"
+                        Padding="18">
+                    <WebView x:Name="PreviewWebView" />
+                </Border>
+
+                <Border Grid.Row="1"
+                        Margin="0,16,0,0"
+                        Stroke="{StaticResource PanelBorder}"
+                        Padding="14,10">
+                    <CollectionView x:Name="SampleGallery"
+                                    HeightRequest="128"
+                                    ItemsLayout="HorizontalList"
+                                    SelectionMode="Single"
+                                    SelectionChanged="OnSampleSelectionChanged">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:SamplePreset">
+                                <Grid Padding="4" WidthRequest="180" RowDefinitions="*,Auto">
+                                    <Border Stroke="{StaticResource PanelBorder}"
+                                            BackgroundColor="#242424"
+                                            Padding="4">
+                                        <Image Source="{Binding ThumbnailPath}" Aspect="AspectFill" />
+                                    </Border>
+                                    <Label Grid.Row="1"
+                                           Margin="0,6,0,0"
+                                           Text="{Binding DisplayName}"
+                                           TextColor="#D9D9D9"
+                                           FontSize="11"
+                                           HorizontalTextAlignment="Center"
+                                           LineBreakMode="TailTruncation" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Border>
+            </Grid>
+
+            <ScrollView Grid.Column="1">
+                <Grid x:Name="OptionsGrid"
+                      Padding="0,8,0,0"
+                      RowSpacing="12"
+                      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                    <Label Grid.Row="0" Text="Clustering" Style="{StaticResource SectionHeaderStyle}" />
+
+                    <HorizontalStackLayout Grid.Row="1" HorizontalOptions="End" Spacing="0">
+                        <Button x:Name="BinaryButton" Style="{StaticResource ToggleButtonStyle}" Text="B/W" Clicked="OnBinaryClicked" />
+                        <Button x:Name="ColorButton" Style="{StaticResource ToggleButtonStyle}" Text="COLOR" Clicked="OnColorClicked" />
+                    </HorizontalStackLayout>
+
+                    <HorizontalStackLayout x:Name="HierarchicalRow" Grid.Row="2" HorizontalOptions="End" Spacing="0">
+                        <Button x:Name="CutoutButton" Style="{StaticResource ToggleButtonStyle}" Text="Cutout" FontSize="12" Clicked="OnCutoutClicked" />
+                        <Button x:Name="StackedButton" Style="{StaticResource ToggleButtonStyle}" Text="Stacked" FontSize="12" Clicked="OnStackedClicked" />
+                    </HorizontalStackLayout>
+
+                    <Label Grid.Row="3" Text="Filter Speckle (Cleaner)" Style="{StaticResource ControlLabelStyle}" />
+                    <Grid Grid.Row="4" ColumnDefinitions="60,*" ColumnSpacing="14">
+                        <Label x:Name="FilterSpeckleValueLabel" Style="{StaticResource ValueLabelStyle}" />
+                        <Slider x:Name="FilterSpeckleSlider"
+                                Grid.Column="1"
+                                Minimum="0"
+                                Maximum="128"
+                                ValueChanged="OnFilterSpeckleChanged"
+                                DragCompleted="OnSliderDragCompleted" />
+                    </Grid>
+
+                    <Label x:Name="ColorPrecisionLabel" Grid.Row="5" Text="Color Precision (More accurate)" Style="{StaticResource ControlLabelStyle}" />
+                    <Grid x:Name="ColorPrecisionRow" Grid.Row="6" ColumnDefinitions="60,*" ColumnSpacing="14">
+                        <Label x:Name="ColorPrecisionValueLabel" Style="{StaticResource ValueLabelStyle}" />
+                        <Slider x:Name="ColorPrecisionSlider"
+                                Grid.Column="1"
+                                Minimum="1"
+                                Maximum="8"
+                                ValueChanged="OnColorPrecisionChanged"
+                                DragCompleted="OnSliderDragCompleted" />
+                    </Grid>
+
+                    <Label x:Name="GradientStepLabel" Grid.Row="7" Text="Gradient Step (Less layers)" Style="{StaticResource ControlLabelStyle}" />
+                    <Grid x:Name="GradientStepRow" Grid.Row="8" ColumnDefinitions="60,*" ColumnSpacing="14">
+                        <Label x:Name="GradientStepValueLabel" Style="{StaticResource ValueLabelStyle}" />
+                        <Slider x:Name="GradientStepSlider"
+                                Grid.Column="1"
+                                Minimum="0"
+                                Maximum="128"
+                                ValueChanged="OnGradientStepChanged"
+                                DragCompleted="OnSliderDragCompleted" />
+                    </Grid>
+
+                    <Label Grid.Row="9" Text="Curve Fitting" Style="{StaticResource SectionHeaderStyle}" Margin="0,14,0,0" />
+
+                    <HorizontalStackLayout Grid.Row="10" HorizontalOptions="End" Spacing="0">
+                        <Button x:Name="PixelButton" Style="{StaticResource ToggleButtonStyle}" Text="PIXEL" Clicked="OnPixelClicked" />
+                        <Button x:Name="PolygonButton" Style="{StaticResource ToggleButtonStyle}" Text="POLYGON" Clicked="OnPolygonClicked" />
+                        <Button x:Name="SplineButton" Style="{StaticResource ToggleButtonStyle}" Text="SPLINE" Clicked="OnSplineClicked" />
+                    </HorizontalStackLayout>
+
+                    <Label x:Name="CornerLabel" Grid.Row="11" Text="Corner Threshold (Smoother)" Style="{StaticResource ControlLabelStyle}" />
+                    <Grid x:Name="CornerRow" Grid.Row="12" ColumnDefinitions="60,*" ColumnSpacing="14">
+                        <Label x:Name="CornerValueLabel" Style="{StaticResource ValueLabelStyle}" />
+                        <Slider x:Name="CornerSlider"
+                                Grid.Column="1"
+                                Minimum="0"
+                                Maximum="180"
+                                ValueChanged="OnCornerChanged"
+                                DragCompleted="OnSliderDragCompleted" />
+                    </Grid>
+
+                    <Label x:Name="LengthLabel" Grid.Row="13" Text="Segment Length (More coarse)" Style="{StaticResource ControlLabelStyle}" />
+                    <Grid x:Name="LengthRow" Grid.Row="14" ColumnDefinitions="60,*" ColumnSpacing="14">
+                        <Label x:Name="LengthValueLabel" Style="{StaticResource ValueLabelStyle}" />
+                        <Slider x:Name="LengthSlider"
+                                Grid.Column="1"
+                                Minimum="3.5"
+                                Maximum="10"
+                                ValueChanged="OnLengthChanged"
+                                DragCompleted="OnSliderDragCompleted" />
+                    </Grid>
+
+                    <Label x:Name="SpliceLabel" Grid.Row="15" Text="Splice Threshold (Less accurate)" Style="{StaticResource ControlLabelStyle}" />
+                    <Grid x:Name="SpliceRow" Grid.Row="16" ColumnDefinitions="60,*" ColumnSpacing="14">
+                        <Label x:Name="SpliceValueLabel" Style="{StaticResource ValueLabelStyle}" />
+                        <Slider x:Name="SpliceSlider"
+                                Grid.Column="1"
+                                Minimum="0"
+                                Maximum="180"
+                                ValueChanged="OnSpliceChanged"
+                                DragCompleted="OnSliderDragCompleted" />
+                    </Grid>
+
+                    <Label Grid.Row="17"
+                           Margin="0,18,0,0"
+                           Text="The layout and controls mirror the VisionCortex web app, now powered by the local C++ tracer."
+                           TextColor="#B0B0B0"
+                           FontSize="12"
+                           HorizontalTextAlignment="End" />
+                </Grid>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>
