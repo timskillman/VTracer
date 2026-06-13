@@ -1,5 +1,8 @@
+using System.Diagnostics;
+using System.Globalization;
 using Microsoft.Maui.Storage;
 using VTracerMaui.Interop;
+using VTracerMaui.Platforms.Windows;
 using VTracerMaui.Models;
 
 namespace VTracerMaui;
@@ -261,7 +264,7 @@ public partial class MainPage : ContentPage
             TracingProgressBar.IsVisible = true;
             TracingProgressBar.Progress = 0.15;
             StatusLabel.Text = "Tracing image...";
-            DownloadButton.IsEnabled = false;
+            SetExportButtonsEnabled(false);
 
             var config = BuildConfig();
             var stats = await Task.Run(() => NativeMethods.TraceFile(_currentImagePath!, _previewSvgPath, config));
@@ -275,13 +278,13 @@ public partial class MainPage : ContentPage
             };
 
             TracingProgressBar.Progress = 1;
-            DownloadButton.IsEnabled = true;
+            SetExportButtonsEnabled(true);
             StatusLabel.Text = $"{stats.OutputPaths} paths, {stats.TotalRegions} regions, {stats.FilteredRegions} filtered";
         }
         catch (Exception ex)
         {
             _latestSvgMarkup = null;
-            DownloadButton.IsEnabled = false;
+            SetExportButtonsEnabled(false);
             StatusLabel.Text = "Tracing failed.";
             await DisplayAlertAsync("Tracing Failed", ex.Message, "OK");
         }
@@ -437,19 +440,173 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async void OnDownloadClicked(object? sender, EventArgs e)
+    private void SetExportButtonsEnabled(bool enabled)
+    {
+        ExportSvgButton.IsEnabled = enabled;
+        ExportObjButton.IsEnabled = enabled;
+    }
+
+    private async void OnExportSvgClicked(object? sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_latestSvgMarkup))
         {
             return;
         }
 
-        var downloads = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-        Directory.CreateDirectory(downloads);
-        var fileName = $"export-{DateTime.Now:yyyy-MM-dd HHmmss}.svg";
-        var outputPath = Path.Combine(downloads, fileName);
-        await File.WriteAllTextAsync(outputPath, _latestSvgMarkup);
-        StatusLabel.Text = $"Saved {fileName} to Downloads";
+        try
+        {
+            var outputPath = await WindowsSaveFileDialog.PickAsync(
+                "Export SVG",
+                BuildSuggestedFileName("svg"),
+                ".svg",
+                "SVG image");
+            if (outputPath is null)
+            {
+                return;
+            }
+
+            await File.WriteAllTextAsync(outputPath, _latestSvgMarkup);
+            StatusLabel.Text = $"Saved {Path.GetFileName(outputPath)}";
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("Export SVG Failed", ex.Message, "OK");
+        }
+    }
+
+    private async void OnExportObjClicked(object? sender, EventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_latestSvgMarkup))
+        {
+            return;
+        }
+
+        var heightText = await DisplayPromptAsync(
+            "Export OBJ",
+            "Extrude height (mm)",
+            "EXPORT OBJ",
+            "CANCEL",
+            "10",
+            keyboard: Keyboard.Numeric);
+        if (heightText is null)
+        {
+            return;
+        }
+
+        if (!TryParsePositiveHeight(heightText, out var height))
+        {
+            await DisplayAlertAsync("Invalid Height", "Enter an extrude height greater than 0 mm.", "OK");
+            return;
+        }
+
+        try
+        {
+            var outputPath = await WindowsSaveFileDialog.PickAsync(
+                "Export OBJ",
+                BuildSuggestedFileName("obj"),
+                ".obj",
+                "Wavefront OBJ");
+            if (outputPath is null)
+            {
+                return;
+            }
+
+            SetExportButtonsEnabled(false);
+            StatusLabel.Text = "Converting SVG to OBJ...";
+            await File.WriteAllTextAsync(_previewSvgPath, _latestSvgMarkup);
+            await Task.Run(() => ConvertSvgToObj(_previewSvgPath, outputPath, height));
+            StatusLabel.Text = $"Saved {Path.GetFileName(outputPath)} and {Path.GetFileNameWithoutExtension(outputPath)}.mtl";
+        }
+        catch (Exception ex)
+        {
+            StatusLabel.Text = "OBJ export failed.";
+            await DisplayAlertAsync("Export OBJ Failed", ex.Message, "OK");
+        }
+        finally
+        {
+            SetExportButtonsEnabled(!string.IsNullOrWhiteSpace(_latestSvgMarkup));
+        }
+    }
+
+    private string BuildSuggestedFileName(string extension)
+    {
+        var sourceName = Path.GetFileNameWithoutExtension(_currentImagePath);
+        if (string.IsNullOrWhiteSpace(sourceName))
+        {
+            sourceName = $"export-{DateTime.Now:yyyy-MM-dd-HHmmss}";
+        }
+
+        return $"{sourceName}.{extension}";
+    }
+
+    private static bool TryParsePositiveHeight(string text, out double height)
+    {
+        return (double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out height)
+                || double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out height))
+            && double.IsFinite(height)
+            && height > 0;
+    }
+
+    private static void ConvertSvgToObj(string inputPath, string outputPath, double height)
+    {
+        var converterPath = Path.Combine(AppContext.BaseDirectory, "svg2obj.exe");
+        if (!File.Exists(converterPath))
+        {
+            throw new FileNotFoundException("The SVGtoOBJ converter was not found beside the application.", converterPath);
+        }
+
+        var outputDirectory = Path.GetDirectoryName(outputPath)
+            ?? throw new InvalidOperationException("The OBJ output directory is not valid.");
+        var outputFileName = Path.GetFileName(outputPath);
+        var mtlPath = Path.ChangeExtension(outputPath, ".mtl");
+        var temporaryDirectory = Path.Combine(FileSystem.CacheDirectory, $"obj-export-{Guid.NewGuid():N}");
+        var temporaryObjPath = Path.Combine(temporaryDirectory, outputFileName);
+        var temporaryMtlPath = Path.ChangeExtension(temporaryObjPath, ".mtl");
+
+        Directory.CreateDirectory(temporaryDirectory);
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = converterPath,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            startInfo.ArgumentList.Add(inputPath);
+            startInfo.ArgumentList.Add(temporaryObjPath);
+            startInfo.ArgumentList.Add(height.ToString("R", CultureInfo.InvariantCulture));
+            startInfo.ArgumentList.Add("--curve-tolerance");
+            startInfo.ArgumentList.Add("1");
+
+            using var process = Process.Start(startInfo)
+                ?? throw new InvalidOperationException("Could not start the SVGtoOBJ converter.");
+            var standardOutput = process.StandardOutput.ReadToEnd();
+            var standardError = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            if (process.ExitCode != 0)
+            {
+                var message = string.IsNullOrWhiteSpace(standardError) ? standardOutput : standardError;
+                throw new InvalidOperationException(string.IsNullOrWhiteSpace(message)
+                    ? $"SVGtoOBJ exited with code {process.ExitCode}."
+                    : message.Trim());
+            }
+
+            if (!File.Exists(temporaryObjPath) || !File.Exists(temporaryMtlPath))
+            {
+                throw new InvalidOperationException("SVGtoOBJ did not produce both the OBJ and MTL files.");
+            }
+
+            Directory.CreateDirectory(outputDirectory);
+            File.Move(temporaryMtlPath, mtlPath, true);
+            File.Move(temporaryObjPath, outputPath, true);
+        }
+        finally
+        {
+            Directory.Delete(temporaryDirectory, true);
+        }
     }
 
     private async void OnArticleClicked(object? sender, EventArgs e)

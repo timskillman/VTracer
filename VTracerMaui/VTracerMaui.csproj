@@ -13,6 +13,7 @@
 		<NativeConfiguration Condition="'$(NativeConfiguration)' == '' and '$(Configuration)' == 'Debug'">Release</NativeConfiguration>
 		<NativeConfiguration Condition="'$(NativeConfiguration)' == '' and '$(Configuration)' != 'Debug'">$(Configuration)</NativeConfiguration>
 		<NativeDllPath>$(NativeBuildDir)\$(NativeConfiguration)\vtracer_native.dll</NativeDllPath>
+		<SvgToObjExePath>$(NativeBuildDir)\SVGtoOBJ\$(NativeConfiguration)\svg2obj.exe</SvgToObjExePath>
 		<ApplicationTitle>VTracer</ApplicationTitle>
 		<ApplicationId>org.visioncortex.vtracermaui</ApplicationId>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -46,11 +47,12 @@
 
 	<Target Name="BuildNativeTracer" BeforeTargets="CoreCompile">
 		<Exec Command="cmake -S &quot;$(MSBuildProjectDirectory)\..&quot; -B &quot;$(NativeBuildDir)&quot; -G &quot;Visual Studio 17 2022&quot;" />
-		<Exec Command="cmake --build &quot;$(NativeBuildDir)&quot; --config $(NativeConfiguration) --target vtracer_native" />
+		<Exec Command="cmake --build &quot;$(NativeBuildDir)&quot; --config $(NativeConfiguration) --target vtracer_native svg2obj" />
 	</Target>
 
 	<Target Name="CopyNativeTracer" AfterTargets="Build" Condition="Exists('$(NativeDllPath)')">
 		<Copy SourceFiles="$(NativeDllPath)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="$(SvgToObjExePath)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" Condition="Exists('$(SvgToObjExePath)')" />
 	</Target>
 
 </Project>

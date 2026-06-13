@@ -46,3 +46,5 @@ add_executable(vtracer_cli
 )
 
 target_link_libraries(vtracer_cli PRIVATE vtracer_core)
+
+add_subdirectory(SVGtoOBJ)

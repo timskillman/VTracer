@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80">
+  <path fill="#e84a5f" d="M 5,5 H 55 V 55 H 5 Z M 18,18 V 42 H 42 V 18 Z" fill-rule="evenodd"/>
+  <g transform="translate(65 10) rotate(8 20 20)" fill="rgb(45, 140, 220)">
+    <path d="M 0,35 C 5,0 35,0 40,35 Q 20,55 0,35 Z"/>
+  </g>
+</svg>
+
