@@ -51,7 +51,7 @@
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="24">
             <HorizontalStackLayout Spacing="18" VerticalOptions="Center">
                 <Image Source="visioncortex_logo.svg" HeightRequest="42" Aspect="AspectFit" />
-                <Label Text="VTracer"
+                <Label Text="Image to SVG and 3D OBJ"
                        TextColor="{StaticResource White}"
                        FontFamily="OpenSansSemibold"
                        FontSize="26"
@@ -59,14 +59,6 @@
             </HorizontalStackLayout>
 
             <HorizontalStackLayout Grid.Column="1" Spacing="12" HorizontalOptions="End">
-                <Button x:Name="ArticleButton"
-                        Style="{StaticResource NavButtonStyle}"
-                        Text="ARTICLE"
-                        Clicked="OnArticleClicked" />
-                <Button x:Name="GitHubButton"
-                        Style="{StaticResource NavButtonStyle}"
-                        Text="GITHUB"
-                        Clicked="OnGitHubClicked" />
                 <Button x:Name="OpenImageButton"
                         Style="{StaticResource NavButtonStyle}"
                         Text="SELECT FILE"
@@ -235,13 +227,6 @@
                                 ValueChanged="OnSpliceChanged"
                                 DragCompleted="OnSliderDragCompleted" />
                     </Grid>
-
-                    <Label Grid.Row="17"
-                           Margin="0,18,0,0"
-                           Text="The layout and controls mirror the VisionCortex web app, now powered by the local C++ tracer."
-                           TextColor="#B0B0B0"
-                           FontSize="12"
-                           HorizontalTextAlignment="End" />
                 </Grid>
             </ScrollView>
         </Grid>

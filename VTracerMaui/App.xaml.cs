@@ -12,7 +12,7 @@ public partial class App : Application
 	{
 		var window = new Window(new AppShell())
 		{
-			Title = "VisionCortex / VTracer",
+			Title = "Image to SVG and OBJ",
 			Width = 1600,
 			Height = 960,
 		};

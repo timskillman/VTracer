@@ -609,16 +609,6 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async void OnArticleClicked(object? sender, EventArgs e)
-    {
-        await Launcher.Default.OpenAsync(new Uri("https://www.visioncortex.org/vtracer-docs"));
-    }
-
-    private async void OnGitHubClicked(object? sender, EventArgs e)
-    {
-        await Launcher.Default.OpenAsync(new Uri("https://github.com/visioncortex/vtracer"));
-    }
-
     private async void OnSampleSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (e.CurrentSelection.FirstOrDefault() is SamplePreset sample)
