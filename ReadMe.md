@@ -4,6 +4,7 @@ A C++20 port of [VTracer](https://www.visioncortex.org/vtracer) for converting r
 
 ![alt text](https://github.com/timskillman/VTracer/blob/master/VTracerMaui/Assets/Screenshot.jpg "Maui App")
 ![alt text](https://github.com/timskillman/VTracer/blob/master/VTracerMaui/Assets/delaunator.jpg "OBJ export")
+![alt text](https://github.com/timskillman/VTracer/blob/master/VTracerMaui/Assets/delaunator2.jpg "OBJ export 2")
 
 ## Requirements
 
