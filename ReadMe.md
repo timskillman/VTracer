@@ -1,8 +1,9 @@
-# VTracerCPP
+# SVG and 3D OBJ export from image
 
-A C++20 port of [VTracer](https://www.visioncortex.org/vtracer) for converting raster images into SVG files. The repository includes a native library, a command-line application, and a Windows .NET 10.0 MAUI frontend.  The MAUI project is configured for Windows and Mac.
+A C++20 port of [VTracer](https://www.visioncortex.org/vtracer) for converting raster images into SVG files and 3D OBJ files. The repository includes a native library, a command-line application, and a Windows .NET 10.0 MAUI frontend.  The MAUI project is configured for Windows and Mac.
 
 ![alt text](https://github.com/timskillman/VTracer/blob/master/VTracerMaui/Assets/Screenshot.jpg "Maui App")
+![alt text](https://github.com/timskillman/VTracer/blob/master/VTracerMaui/Assets/delaunator.jpg "OBJ export")
 
 ## Requirements
 
@@ -49,4 +50,4 @@ The MAUI project builds the native tracer automatically through CMake.
 - `src/` - native implementation
 - `external/` - third-party headers
 - `VTracerMaui/` - .NET MAUI desktop application
-
+- 'SVGtoOBJ/' - SVG to OBJ file exporter based on MapBox's Delaunator
